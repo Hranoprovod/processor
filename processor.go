@@ -14,7 +14,8 @@ const (
 	dateEnd       = 1
 )
 
-type ProcessorOptions struct {
+// Options contains the processor options
+type Options struct {
 	DateFormat string
 	HasBeginning bool
 	HasEnd bool
@@ -28,13 +29,14 @@ type ProcessorOptions struct {
 
 // Processor contains the processor data
 type Processor struct {
-	options  *ProcessorOptions
+	options  *Options
 	db       *shared.NodeList
 	reporter *reporter.Reporter
 }
 
-func DefaultProcessorOptions() *ProcessorOptions {
-	return &ProcessorOptions{
+// NewDefaultOptions return default options
+func NewDefaultOptions() *Options {
+	return &Options{
 		"2006/01/02",
 		false,
 		false,
@@ -48,7 +50,7 @@ func DefaultProcessorOptions() *ProcessorOptions {
 }
 
 // NewProcessor creates new node processor
-func NewProcessor(options *ProcessorOptions, db *shared.NodeList, reporter *reporter.Reporter) *Processor {
+func NewProcessor(options *Options, db *shared.NodeList, reporter *reporter.Reporter) *Processor {
 	return &Processor{
 		options,
 		db,
@@ -66,6 +68,7 @@ func isGoodDate(time, compareTime time.Time, compareType int) bool {
 	return time.Before(compareTime)
 }
 
+// Process processes log node
 func (p *Processor) Process(ln *shared.LogNode) error {
 	if (p.options.HasBeginning && !isGoodDate(ln.Time, p.options.BeginningTime, dateBeginning)) || (p.options.HasEnd && !isGoodDate(ln.Time, p.options.EndTime, dateEnd)) {
 		return nil
