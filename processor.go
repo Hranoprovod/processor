@@ -1,12 +1,13 @@
 package processor
 
 import (
-	"github.com/Hranoprovod/shared"
-	"github.com/Hranoprovod/accumulator"
-	"github.com/Hranoprovod/reporter"
 	"regexp"
 	"sort"
 	"time"
+
+	"github.com/Hranoprovod/accumulator"
+	"github.com/Hranoprovod/reporter"
+	"github.com/Hranoprovod/shared"
 )
 
 const (
@@ -16,15 +17,16 @@ const (
 
 // Options contains the processor options
 type Options struct {
-	DateFormat string
-	HasBeginning bool
-	HasEnd bool
+	DateFormat    string
+	HasBeginning  bool
+	HasEnd        bool
 	BeginningTime time.Time
-	EndTime time.Time
-	Unresolved bool
+	EndTime       time.Time
+	Unresolved    bool
 	SingleElement string
-	SingleFood string
-	Totals bool
+	SingleFood    string
+	Totals        bool
+	TotalsOnly    bool
 }
 
 // Processor contains the processor data
@@ -46,6 +48,7 @@ func NewDefaultOptions() *Options {
 		"",
 		"",
 		true,
+		false,
 	}
 }
 
@@ -138,15 +141,21 @@ func (p *Processor) defaultProcessor(ln *shared.LogNode) error {
 	acc := accumulator.NewAccumulator()
 	p.reporter.PrintDate(ln.Time)
 	for _, element := range *ln.Elements {
-		p.reporter.PrintElement(element)
+		if !p.options.TotalsOnly {
+			p.reporter.PrintElement(element)
+		}
 		if repl, found := (*p.db)[element.Name]; found {
 			for _, repl := range *repl.Elements {
 				res := repl.Val * element.Val
-				p.reporter.PrintIngredient(repl.Name, res)
+				if !p.options.TotalsOnly {
+					p.reporter.PrintIngredient(repl.Name, res)
+				}
 				acc.Add(repl.Name, res)
 			}
 		} else {
-			p.reporter.PrintIngredient(element.Name, element.Val)
+			if !p.options.TotalsOnly {
+				p.reporter.PrintIngredient(element.Name, element.Val)
+			}
 			acc.Add(element.Name, element.Val)
 		}
 	}
